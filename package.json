@@ -1,16 +1,25 @@
-{
-  "name": "new-folder-(7)",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "express": "^4.21.2",
-    "firebase-admin": "^13.0.1"
-  }
-}
+name: Run Node Server
+
+on:
+  push:
+    branches:
+      - main  # Run the workflow when code is pushed to the main branch
+
+jobs:
+  run-server:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Start Server
+        run: node server.js
