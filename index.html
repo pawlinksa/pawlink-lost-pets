@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pet Tag Generator</title>
+
+  <!-- Firebase SDK for Firebase v9 or later -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, orderBy, query, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXmhD-t6oS6vOe_CAFc9DUCoP0EmS_4Dk",
+      authDomain: "pawlink-4136f.firebaseapp.com",
+      projectId: "pawlink-4136f",
+      storageBucket: "pawlink-4136f.firebasestorage.app",
+      messagingSenderId: "87083774223",
+      appId: "1:87083774223:web:50b19b7a6e2831dde98e7a",
+      measurementId: "G-8VE5KFBPLD"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Fetch lost dog submissions from Firestore
+    async function fetchLostDogs() {
+      const submissionsContainer = document.getElementById('submissionsContainer');
+      submissionsContainer.innerHTML = ''; // Clear previous submissions
+      const q = query(collection(db, "lostDogs"), orderBy("timestamp", "desc"));
+      const querySnapshot = await getDocs(q);
+
+      querySnapshot.forEach((docSnapshot) => {
+        const data = docSnapshot.data();
+        const submissionDiv = document.createElement('div');
+        submissionDiv.classList.add('submission-item');
+        
+        submissionDiv.innerHTML = `
+          <h3>Tag Number: ${data.tagNumber}</h3>
+          <p><strong>Owner Email:</strong> ${data.OwnerEmail}</p>
+          <p><strong>Name:</strong> ${data.name} ${data.surname}</p>
+          <p><strong>Contact:</strong> ${data.contact}</p>
+          <button class="remove-btn" data-id="${docSnapshot.id}">Remove Submission</button>
+        `;
+        
+        submissionsContainer.appendChild(submissionDiv);
+      });
+
+      // Add event listener for remove buttons
+      document.querySelectorAll('.remove-btn').forEach(button => {
+        button.onclick = (e) => {
+          const submissionId = e.target.getAttribute('data-id');
+          removeSubmission(submissionId);
+        };
+      });
+    }
+
+    // Function to remove a submission from Firestore
+    async function removeSubmission(submissionId) {
+      try {
+        await deleteDoc(doc(db, "lostDogs", submissionId));
+        alert('Submission removed successfully!');
+        fetchLostDogs(); // Reload submissions after removal
+      } catch (error) {
+        console.error('Error removing submission: ', error);
+        alert('Failed to remove submission!');
+      }
+    }
+
+    // Login logic
+    function handleLogin() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      // Simple hardcoded username/password (use a secure backend for real apps)
+      if (username === 'smoky' && password === 'MTorben@9898') {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
+        fetchLostDogs(); // Load the submissions
+      } else {
+        alert('Invalid username or password!');
+      }
+    }
+
+    window.onload = () => {
+      document.getElementById('loginButton').onclick = handleLogin;
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: #3B9D68;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .form-container {
+      background-color: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      width: 100%;
+      margin-top: 20px;
+      transition: transform 0.3s ease;
+    }
+
+    .form-container:hover {
+      transform: scale(1.02);
+    }
+
+    .form-container input {
+      width: 100%;
+      padding: 12px;
+      margin: 12px 0;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    .form-container button {
+      background-color: #3B9D68;
+      color: white;
+      padding: 15px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 8px;
+      width: 100%;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: background-color 0.3s ease;
+    }
+
+    .form-container button:hover {
+      background-color: #358a57;
+    }
+
+    /* Lost Dog Submissions Container */
+    .submissions-container {
+      width: 90%;
+      max-width: 900px;
+      margin-top: 40px;
+      padding: 20px;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .submission-item {
+      background-color: #f9f9f9;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .submission-item h3 {
+      font-size: 1.2rem;
+      color: #333;
+    }
+
+    .submission-item p {
+      font-size: 1rem;
+      color: #555;
+      margin: 5px 0;
+    }
+
+    .remove-btn {
+      background-color: #e74c3c;
+      color: white;
+      padding: 10px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.3s ease;
+    }
+
+    .remove-btn:hover {
+      background-color: #c0392b;
+    }
+
+    /* Login Form */
+    .login-container {
+      background-color: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .login-container input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 1rem;
+    }
+
+    .login-container button {
+      background-color: #3B9D68;
+      color: white;
+      padding: 15px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 8px;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      .form-container {
+        width: 90%;
+        padding: 20px;
+      }
+
+      .form-container button {
+        font-size: 1rem;
+        padding: 12px;
+      }
+
+      .submissions-container {
+        padding: 15px;
+        width: 100%;
+      }
+
+      .login-container {
+        padding: 20px;
+      }
+
+      .login-container button {
+        font-size: 1rem;
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Generate Pet Tag Page</h1>
+
+  <!-- Login Form -->
+  <div class="login-container" id="loginForm">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <button id="loginButton">Login</button>
+  </div>
+
+  <!-- Main Content -->
+  <div id="content" style="display: none;">
+    <div class="form-container">
+      <form action="/generate" method="POST">
+        <label for="tagNumber">Tag Number:</label>
+        <input type="text" id="tagNumber" name="tagNumber" required>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+
+        <button type="submit">Generate Tag Page</button>
+      </form>
+    </div>
+
+    <!-- Lost Dog Submissions -->
+    <div class="submissions-container" id="submissionsContainer">
+      <h2>Lost Dog Submissions</h2>
+      <!-- Dynamic submissions will be appended here -->
+    </div>
+  </div>
+
+</body>
+</html>
